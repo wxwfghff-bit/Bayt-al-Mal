@@ -377,11 +377,11 @@
 <script>
 /* ================= Accounts ================= */
 const ACCOUNTS = [
-  {email:'mohamed@gmail.com', pass:'123', role:'donor', name:'محمد', donorId:'MT-7F2K9', joined:'يناير 2026'},
-  {email:'g1@gmail.com', pass:'123', role:'ngo', name:'مسؤول جمعية الرحمة', charity:'جمعية الرحمة'},
-  {email:'g2@gmail.com', pass:'123', role:'ngo', name:'مسؤول جمعية بيت الخير', charity:'جمعية بيت الخير'},
-  {email:'g3@gmail.com', pass:'123', role:'ngo', name:'مسؤول جمعية رعاية الأيتام', charity:'جمعية رعاية الأيتام'},
-  {email:'g4@gmail.com', pass:'123', role:'ngo', name:'مسؤول جمعية النهضة', charity:'جمعية النهضة'},
+  {email:'donor@baytalmal.eg', pass:'demo123', role:'donor', name:'محمد', donorId:'MT-7F2K9', joined:'يناير 2026'},
+  {email:'rahma@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية الرحمة', charity:'جمعية الرحمة'},
+  {email:'khair@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية بيت الخير', charity:'جمعية بيت الخير'},
+  {email:'aytam@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية رعاية الأيتام', charity:'جمعية رعاية الأيتام'},
+  {email:'nahda@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية النهضة', charity:'جمعية النهضة'},
   {email:'admin@gmail.com', pass:'123', role:'admin', name:'أدمن المنصة'}
 ];
 let currentUser = null;
@@ -769,9 +769,12 @@ function animateCountUp(el){
 }
 
 let loginMode = 'login';
+let pendingSignup = null;
+let pendingOtp = null;
 
 function loginPage(){
   if (loginMode === 'signup') return signupPage();
+  if (loginMode === 'verify') return verifyPage();
   return `
   <div class="login-shell"><div class="login-card">
     <div class="breadcrumb"><a onclick="location.hash='#/welcome'">الرئيسية</a><span class="sep">/</span><span class="cur">تسجيل الدخول</span></div>
@@ -791,13 +794,29 @@ function signupPage(){
     <div class="breadcrumb"><a onclick="loginMode='login'; render();">تسجيل الدخول</a><span class="sep">/</span><span class="cur">حساب جديد</span></div>
     <h2>إنشاء حساب متبرع</h2>
     <div class="sub">سجّل برقم هاتفك عشان تقدر تتبرع وتتابع تبرعاتك</div>
-    <div class="login-error" id="signup-error">تأكد إن رقم الهاتف صحيح وكلمتا المرور متطابقتين.</div>
+    <div class="login-error" id="signup-error">تأكد إن رقم الهاتف صحيح، وكلمة المرور 6 أحرف على الأقل، والكلمتين متطابقتين.</div>
     <div class="field"><label>الاسم</label><input id="signup-name" placeholder="اسمك"></div>
-    <div class="field"><label>رقم الهاتف</label><input id="signup-phone" type="tel" placeholder="01xxxxxxxxx"></div>
+    <div class="field"><label>رقم الهاتف أو البريد الإلكتروني</label><input id="signup-phone" placeholder="01xxxxxxxxx أو example@mail.com"></div>
     <div class="field"><label>كلمة المرور</label><input id="signup-pass" type="password" placeholder="••••••••"></div>
     <div class="field"><label>تأكيد كلمة المرور</label><input id="signup-pass2" type="password" placeholder="••••••••"></div>
     <button class="btn btn-primary" style="width:100%;" onclick="doSignup()">إنشاء الحساب</button>
     <div class="note" style="text-align:center; margin-top:12px;">عندك حساب بالفعل؟ <a onclick="loginMode='login'; render();" style="cursor:pointer; color:var(--teal); text-decoration:underline;">سجّل دخولك</a></div>
+  </div></div>`;
+}
+
+function verifyPage(){
+  const target = pendingSignup ? pendingSignup.phone : '';
+  const isEmail = target.includes('@');
+  return `
+  <div class="login-shell"><div class="login-card">
+    <div class="breadcrumb"><a onclick="loginMode='signup'; render();">حساب جديد</a><span class="sep">/</span><span class="cur">تأكيد الحساب</span></div>
+    <h2>أدخل كود التأكيد</h2>
+    <div class="sub">بعتنالك كود مكوّن من 6 أرقام على ${isEmail ? 'بريدك الإلكتروني' : 'رقم هاتفك'}: <b>${target}</b></div>
+    <div class="login-error" id="verify-error">الكود غير صحيح، حاول تاني.</div>
+    <div class="field"><label>كود التأكيد</label><input id="verify-code" type="text" inputmode="numeric" maxlength="6" placeholder="------" style="text-align:center; letter-spacing:6px; font-size:20px; font-family:'Cairo';"></div>
+    <button class="btn btn-primary" style="width:100%;" onclick="confirmOtp()">تأكيد وإنشاء الحساب</button>
+    <div class="note" style="text-align:center; margin-top:12px;">مستلمتش الكود؟ <a onclick="resendOtp()" style="cursor:pointer; color:var(--teal); text-decoration:underline;">إعادة الإرسال</a></div>
+    <div class="note" id="otp-hint" style="text-align:center; margin-top:6px; color:#A29E88;">(لأغراض العرض التجريبي فقط — الكود: ${pendingOtp})</div>
   </div></div>`;
 }
 
@@ -807,12 +826,30 @@ function doSignup(){
   const pass = document.getElementById('signup-pass').value;
   const pass2 = document.getElementById('signup-pass2').value;
   const err = document.getElementById('signup-error');
-  if (!name || phone.length < 8 || !pass || pass !== pass2){ err.classList.add('show'); return; }
-  if (ACCOUNTS.some(a => a.email === phone)){ err.textContent = 'رقم الهاتف ده مسجّل بالفعل.'; err.classList.add('show'); return; }
-  const newAcc = {email: phone, pass, role:'donor', name, donorId:'MT-' + Math.random().toString(36).slice(2,7).toUpperCase(), joined:'الآن'};
+  if (!name || phone.length < 6 || !pass || pass.length < 6 || pass !== pass2){ err.classList.add('show'); return; }
+  if (ACCOUNTS.some(a => a.email === phone)){ err.textContent = 'رقم الهاتف/البريد ده مسجّل بالفعل.'; err.classList.add('show'); return; }
+  pendingSignup = {name, phone, pass};
+  pendingOtp = String(Math.floor(100000 + Math.random()*900000));
+  loginMode = 'verify';
+  render();
+}
+
+function resendOtp(){
+  if (!pendingSignup) return;
+  pendingOtp = String(Math.floor(100000 + Math.random()*900000));
+  render();
+}
+
+function confirmOtp(){
+  const code = document.getElementById('verify-code').value.trim();
+  const err = document.getElementById('verify-error');
+  if (!pendingSignup || code !== pendingOtp){ err.classList.add('show'); return; }
+  const newAcc = {email: pendingSignup.phone, pass: pendingSignup.pass, role:'donor', name: pendingSignup.name, donorId:'MT-' + Math.random().toString(36).slice(2,7).toUpperCase(), joined:'الآن'};
   ACCOUNTS.push(newAcc);
   currentUser = newAcc;
   loginMode = 'login';
+  pendingSignup = null;
+  pendingOtp = null;
   location.hash = '#/donor';
   render();
 }
@@ -824,7 +861,7 @@ function tryLogin(){
   if (!acc){ document.getElementById('login-error').classList.add('show'); return; }
   currentUser = acc; location.hash = '#/' + acc.role; render();
 }
-function logout(){ currentUser = null; loginMode = 'login'; location.hash = '#/login'; render(); }
+function logout(){ currentUser = null; loginMode = 'login'; pendingSignup = null; pendingOtp = null; location.hash = '#/login'; render(); }
 
 /* ================= DONOR: dashboard ================= */
 function donorDashboardPage(){
@@ -1196,13 +1233,14 @@ function openReceiptModal(seq){
   document.body.appendChild(overlay);
 }
 function confirmSendReceipt(seq){
+  const d = donations.find(x => x.seq === seq);
+  if (!d || d.charity !== currentUser.charity) return;
   const fileInput = document.getElementById('receipt-file');
   const file = fileInput && fileInput.files[0];
   if (!file){ document.getElementById('receipt-error').style.display = 'block'; return; }
   const reader = new FileReader();
   reader.onload = (e) => {
-    const d = donations.find(x => x.seq === seq);
-    if (d){ d.receiptImage = e.target.result; d.receiptSent = true; activityLog.unshift({ts:'الآن', text:'تم إرسال إيصال استلام للمتبرع رقم ' + d.donorId}); }
+    d.receiptImage = e.target.result; d.receiptSent = true; activityLog.unshift({ts:'الآن', text:'تم إرسال إيصال استلام للمتبرع رقم ' + d.donorId});
     const el = document.getElementById('receipt-modal');
     if (el) el.remove();
     render();
@@ -1342,7 +1380,7 @@ function createCase(){
   const bVerify = document.getElementById('nc-b-verify').value;
   const bNotes = document.getElementById('nc-b-notes').value.trim();
 
-  if (!title || !area || !target) return;
+  if (!title || !area || !target || target <= 0) return;
   const id = 'C-0' + (30 + cases.length);
   cases.push({id, title, charities:[currentUser.charity], target, raised:0, area, donorsCount:0,
     category, urgency, duration: duration || 'لم يُحدَّد بعد', needs,
@@ -1438,6 +1476,7 @@ function ngoRequestsPage(){
 function allocateToCase(caseId){
   const ch = approvedCharities.find(x => x.name === currentUser.charity);
   const c = cases.find(x => x.id === caseId);
+  if (!ch || !c || !c.charities.includes(currentUser.charity)) return;
   const input = document.getElementById('alloc-' + caseId);
   let amount = parseInt(input.value, 10);
   if (!amount || amount < 10) return;
@@ -1593,6 +1632,7 @@ function adminCharitiesPage(){
       <div class="field"><label>كلمة المرور المبدئية</label><input id="new-ch-pass" placeholder="demo123"></div>
       <div class="field"><label>سنة التأسيس</label><input id="new-ch-founded" placeholder="مثال: 2024"></div>
       <div class="field"><label>الرصيد الابتدائي (ج.م)</label><input id="new-ch-balance" type="number" placeholder="0"></div>
+      <div class="field"><label>رقم التحويل (فودافون كاش/محفظة)</label><input id="new-ch-transfer" placeholder="مثال: 010 0000 0000"></div>
     </div>
     <div class="field"><label>نبذة عن الجمعية</label><textarea id="new-ch-desc" rows="2" placeholder="وصف مختصر لعمل الجمعية"></textarea></div>
     <button class="btn btn-brass" onclick="createCharity()">إنشاء الحساب</button>
@@ -1607,11 +1647,12 @@ function createCharity(){
   const email = document.getElementById('new-ch-email').value.trim();
   const pass = document.getElementById('new-ch-pass').value.trim() || 'demo123';
   const founded = document.getElementById('new-ch-founded').value.trim() || '2026';
-  const balance = parseInt(document.getElementById('new-ch-balance').value, 10) || 0;
+  const balance = Math.max(0, parseInt(document.getElementById('new-ch-balance').value, 10) || 0);
+  const transferNumber = document.getElementById('new-ch-transfer').value.trim();
   const desc = document.getElementById('new-ch-desc').value.trim() || 'جمعية معتمدة حديثاً.';
-  if (!name || !area || !email) return;
+  if (!name || !area || !email || !transferNumber) return;
   if (ACCOUNTS.some(a => a.email === email)){ document.getElementById('new-ch-result').textContent = 'البريد/الرقم ده مستخدم بالفعل.'; return; }
-  approvedCharities.push({name, area, desc, founded, balance});
+  approvedCharities.push({name, area, desc, founded, balance, transferNumber});
   ACCOUNTS.push({email, pass, role:'ngo', name:'مسؤول ' + name, charity:name});
   activityLog.unshift({ts:'الآن', text:'الأدمن أنشأ حساب جمعية جديدة: ' + name});
   document.getElementById('new-ch-result').textContent = `تم الإنشاء. بيانات الدخول: ${email} / ${pass}`;
