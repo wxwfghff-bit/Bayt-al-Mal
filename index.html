@@ -95,6 +95,12 @@
   .switch.on::after{transform:translateX(-18px);}
   .role-pill{font-size:11px; background:rgba(255,255,255,.08); color:var(--brass-light); padding:5px 12px; border-radius:20px; font-weight:700;}
   .user-chip{font-size:13px; color:#E8F5EC;}
+  @media (max-width:640px){
+    .header-mid{display:none;}
+    .role-pill, .user-chip{display:none;}
+    header.site .wrap{gap:8px;}
+    .btn-logout{padding:7px 10px; font-size:11.5px;}
+  }
   .btn{font-family:'IBM Plex Sans Arabic'; font-weight:700; font-size:13.5px; border:none; cursor:pointer; padding:10px 18px; border-radius:8px; transition:filter .15s, transform .15s, box-shadow .15s;}
   .btn:hover{transform:translateY(-2px);}
   .btn:active{transform:scale(.97) translateY(0);}
@@ -116,6 +122,13 @@
 
   .login-shell{min-height:calc(100vh - 68px); display:flex; align-items:center; justify-content:center; padding:40px 20px;}
   .login-card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:36px; max-width:400px; width:100%; box-shadow:0 20px 50px rgba(10,40,24,.12); animation:popIn .4s cubic-bezier(.16,1,.3,1) both;}
+  @media (max-width:420px){
+    .login-shell{padding:24px 12px;}
+    .login-card{padding:24px 18px;}
+    .modal-card{padding:20px 16px;}
+    .amount-presets{flex-wrap:wrap;}
+    .amount-presets .preset-btn{min-width:70px;}
+  }
   .login-card h2{font-size:22px; color:var(--teal-dark); margin-bottom:6px;}
   .login-card .sub{font-size:13px; color:#6B7280; margin-bottom:22px;}
   .field{margin-bottom:14px;}
@@ -264,6 +277,13 @@
   table.data-table td{padding:11px 14px; border-top:1px solid var(--line);}
   table.data-table tr:hover td{background:var(--parchment);}
 
+  .toast-stack{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column-reverse; gap:10px; align-items:center; pointer-events:none;}
+  .toast{background:var(--navy); color:#fff; padding:13px 22px; border-radius:30px; font-family:'IBM Plex Sans Arabic'; font-size:13.5px; font-weight:600; box-shadow:0 10px 30px rgba(10,40,24,.35); display:flex; align-items:center; gap:10px; animation:toastIn .4s cubic-bezier(.16,1,.3,1) both; border:1px solid rgba(255,255,255,.1);}
+  .toast.out{animation:toastOut .35s cubic-bezier(.4,0,1,1) both;}
+  .toast .tick{width:18px; height:18px; border-radius:50%; background:var(--teal); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px;}
+  .toast.err .tick{background:var(--danger);}
+  @keyframes toastIn{ from{opacity:0; transform:translateY(16px) scale(.9);} to{opacity:1; transform:translateY(0) scale(1);} }
+  @keyframes toastOut{ from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(10px) scale(.92);} }
   .modal-overlay{position:fixed; inset:0; background:rgba(10,40,24,.55); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; animation:fadeUp .25s ease both;}
   .modal-card{background:#fff; border-radius:14px; padding:28px; max-width:380px; width:100%; animation:popIn .35s cubic-bezier(.16,1,.3,1) both;}
   .modal-card h3{font-size:17px; color:var(--teal-dark); margin-bottom:4px;}
@@ -294,6 +314,17 @@
     color:var(--parchment); padding:96px 0 190px; text-align:center; position:relative; overflow:hidden;
   }
   .village-scene{position:absolute; bottom:0; left:0; width:100%; height:200px; z-index:0;}
+  @media (max-width:640px){
+    .landing-hero{padding:56px 0 130px;}
+    .landing-hero h1{font-size:26px !important; line-height:1.5;}
+    .landing-hero p{font-size:14px !important;}
+    .landing-wordmark{font-size:17px;}
+    .village-scene{height:140px;}
+    .strip-row{gap:28px;}
+    .strip-item .v{font-size:20px;}
+    .landing-section{padding:40px 0;}
+    .landing-section h2{font-size:22px;}
+  }
   .sun{animation:sunPulse 4s ease-in-out infinite; transform-origin:1000px 70px;}
   .sun-ring{animation:sunRingPulse 4s ease-in-out infinite; transform-origin:1000px 70px;}
   @keyframes sunPulse{ 0%,100%{opacity:.5; transform:scale(1);} 50%{opacity:.7; transform:scale(1.08);} }
@@ -356,7 +387,7 @@
   .principle-card .num{font-family:'Cairo'; font-size:24px; color:var(--brass); font-weight:700;}
   .principle-card .t{font-size:14.5px; font-weight:700; margin-top:8px;}
   .principle-card .d{font-size:12.5px; color:#6B7280; margin-top:6px; line-height:1.7;}
-  .roles-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .roles-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; max-width:640px; margin:0 auto;}
   @media (max-width:820px){.roles-grid{grid-template-columns:1fr;}}
   .role-card{background:linear-gradient(165deg,var(--parchment-2),#E4F5E8); border-radius:12px; padding:20px; transition:transform .2s, box-shadow .2s;}
   .role-card:hover{transform:translateY(-4px); box-shadow:0 14px 28px rgba(22,40,29,.1);}
@@ -378,18 +409,19 @@
 </header>
 
 <div id="app"></div>
+<div class="toast-stack" id="toast-stack"></div>
 
-<footer class="site">byd3f4ult</footer>
+<footer class="site">حقوق المنصة لـ نماء</footer>
 
 <script>
 /* ================= Accounts ================= */
 const ACCOUNTS = [
-  {email:'mohamed@gmail.com', pass:'demo123', role:'donor', name:'محمد', donorId:'MT-7F2K9', joined:'يناير 2026'},
-  {email:'j1@gmail.com', pass:'demo123', role:'ngo', name:'مسؤول جمعية الرحمة', charity:'جمعية الرحمة'},
-  {email:'j2@gmail.com', pass:'demo123', role:'ngo', name:'مسؤول جمعية بيت الخير', charity:'جمعية بيت الخير'},
-  {email:'j3@gmail.com', pass:'demo123', role:'ngo', name:'مسؤول جمعية رعاية الأيتام', charity:'جمعية رعاية الأيتام'},
-  {email:'j4@gmail.com', pass:'demo123', role:'ngo', name:'مسؤول جمعية النهضة', charity:'جمعية النهضة'},
-  {email:'admin@gmail.com', pass:'demo123', role:'admin', name:'أدمن المنصة'}
+  {email:'donor@baytalmal.eg', pass:'demo123', role:'donor', name:'محمد', donorId:'MT-7F2K9', joined:'يناير 2026'},
+  {email:'rahma@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية الرحمة', charity:'جمعية الرحمة'},
+  {email:'khair@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية بيت الخير', charity:'جمعية بيت الخير'},
+  {email:'aytam@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية رعاية الأيتام', charity:'جمعية رعاية الأيتام'},
+  {email:'nahda@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية النهضة', charity:'جمعية النهضة'},
+  {email:'admin@baytalmal.eg', pass:'demo123', role:'admin', name:'أدمن المنصة'}
 ];
 let currentUser = null;
 
@@ -492,6 +524,19 @@ window.addEventListener('hashchange', render);
 function parseHash(){
   const parts = (location.hash || '').replace('#/','').split('/').filter(Boolean).map(p => decodeURIComponent(p));
   return {section: parts[0], sub: parts[1], id: parts[2]};
+}
+
+function showToast(message, isError){
+  const stack = document.getElementById('toast-stack');
+  if (!stack) return;
+  const el = document.createElement('div');
+  el.className = 'toast' + (isError ? ' err' : '');
+  el.innerHTML = `<span class="tick">${isError ? '!' : '✓'}</span><span>${message}</span>`;
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 350);
+  }, 2800);
 }
 
 function render(){
@@ -654,8 +699,8 @@ function landingPage(){
       <div class="orb orb-3"></div>
       <div class="wrap" style="position:relative; z-index:1;">
         <div class="landing-wordmark reveal">بيت <span class="brand-accent">المال</span></div>
-        <h1 class="reveal" style="transition-delay:.05s;">أهل الخير في <span class="village">كفر بهيده</span> بقالهم بيت واحد</h1>
-        <p class="reveal" style="transition-delay:.16s;">قرش كل واحد فينا بيوصل لجمعية موثوقة، وبيتصرف بشفافية كاملة، وإنت متابع كل خطوة — من غير ما حد يعرف مين اتبرع ولا لمين.</p>
+        <h1 class="reveal" style="transition-delay:.05s;">أهل <span class="village">كفر بهيده</span> إيد واحدة</h1>
+        <p class="reveal" style="transition-delay:.16s;">دورنا: أبناء البلد يساعدوا بعض، والمحتاج فعلاً هو اللي يوصله الدعم.</p>
         <div class="landing-cta reveal" style="transition-delay:.28s;">
           <button class="btn btn-brass" onclick="location.hash='#/login'">ابدأ من هنا</button>
         </div>
@@ -711,7 +756,7 @@ function landingPage(){
         <div class="principles-grid">
           <div class="principle-card reveal">
             <svg class="p-icon" viewBox="0 0 24 24" width="26" height="26"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-4z" fill="none" stroke="var(--brass)" stroke-width="1.6" stroke-linejoin="round"/></svg>
-            <div class="t">ستر على الاتنين</div><div class="d">اسمك ما يوصلش للجمعية، وحال المستفيد ما يوصلش لك — كرامة الناس محفوظة من الجهتين.</div>
+            <div class="t">ستر الحالة</div><div class="d">محدّش يعرف اسم الحالة إلا اللي هيوصّلهم المبلغ فعلاً — عشان محدش يتجرح.</div>
           </div>
           <div class="principle-card reveal" style="transition-delay:.08s;">
             <svg class="p-icon" viewBox="0 0 24 24" width="26" height="26"><rect x="3" y="6" width="18" height="14" rx="2" fill="none" stroke="var(--brass)" stroke-width="1.6"/><path d="M3 9h18" stroke="var(--brass)" stroke-width="1.6"/><path d="M8 3v5" stroke="var(--brass)" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -719,7 +764,7 @@ function landingPage(){
           </div>
           <div class="principle-card reveal" style="transition-delay:.16s;">
             <svg class="p-icon" viewBox="0 0 24 24" width="26" height="26"><path d="M3 11v2a2 2 0 002 2h1l4 4V5L6 9H5a2 2 0 00-2 2z" fill="none" stroke="var(--brass)" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 8a4 4 0 010 8" fill="none" stroke="var(--brass)" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <div class="t">حساب وكتاب</div><div class="d">هتوصلك أخبار حقيقية عن فلوسك راحت فين وليه، برضه من غير ما حد يتعرف عليه.</div>
+            <div class="t">تأكيد الاستلام</div><div class="d">الجمعية أول ما تستلم فلوسك بتبعتلك إيصال يأكّد إن المبلغ وصل فعلاً.</div>
           </div>
         </div>
       </div>
@@ -741,13 +786,13 @@ function landingPage(){
 
     <section class="landing-section" style="border-bottom:none;">
       <div class="wrap">
-        <h2 class="reveal">تلات وشوش للمنصة</h2>
-        <div class="sub-c reveal">كل واحد وشغلانته.</div>
+        <h2 class="reveal">مين بيستخدم المنصة؟</h2>
+        <div class="sub-c reveal">اتنين بس، وكل واحد وشغلانته.</div>
         <div class="roles-grid">
-          <div class="role-card reveal"><div class="t">إنت</div><div class="d">تدّي براحتك، وتسأل عن الأثر وقت ما تحب، من غير أي التزام يكشفك.</div></div>
-          <div class="role-card reveal" style="transition-delay:.08s;"><div class="t">الجمعية</div><div class="d">بتحطّ الحالات، وتوزّع الرصيد بنفسها، ومسؤولة عن كل قرش لوحدها.</div></div>
-          <div class="role-card reveal" style="transition-delay:.16s;"><div class="t">إدارة بيت المال</div><div class="d">هي اللي بتوافق على دخول الجمعيات، وعينها على الحركة كلها أول بأول.</div></div>
+          <div class="role-card reveal"><div class="t">المتبرع</div><div class="d">تختار الجمعية اللي عايز تتبرع لها، تتبرع، وتستلم إيصال تبرعك على طول.</div></div>
+          <div class="role-card reveal" style="transition-delay:.08s;"><div class="t">الجمعية</div><div class="d">مسؤولة إنها توصّل فلوسك للمحتاج فعلاً، وأول ما تستلم منك المبلغ تبعتلك إيصال باستلامه.</div></div>
         </div>
+        <div class="sub-c reveal" style="margin-top:26px;">والمنصة من ورا الاتنين، بتضمن إن مفيش نفس الحالة بتتكرر عند أكتر من جمعية، وبتضمن الشفافية طول الوقت. تسجيل حساب المتبرع بسيط وسريع.</div>
       </div>
     </section>
   </div>`;
@@ -848,6 +893,7 @@ function resetNewPasswordPage(){
 }
 
 let pendingResetTarget = null;
+let lastCharityCreds = null;
 
 function doForgotPassword(){
   const email = document.getElementById('forgot-email').value.trim();
@@ -881,6 +927,7 @@ function doResetPassword(){
   pendingResetTarget = null;
   loginMode = 'login';
   render();
+  showToast('تم تحديث كلمة المرور، سجّل دخولك بالجديدة');
 }
 
 function signupPage(){
@@ -947,6 +994,7 @@ function confirmOtp(){
   pendingOtp = null;
   location.hash = '#/donor';
   render();
+  showToast('تم إنشاء الحساب بنجاح، أهلاً بيك في بيت المال');
 }
 
 function tryLogin(){
@@ -1234,6 +1282,7 @@ function donate(charityName, amount, proofImage){
   donations.push(record);
   activityLog.unshift({ts:'الآن', text:'تبرع جديد بقيمة ' + fmt(amount) + ' ج.م لـ' + ch.name});
   render();
+  showToast('تم التبرع بنجاح — شكراً لك!');
 }
 
 
@@ -1339,6 +1388,7 @@ function confirmSendReceipt(seq){
     const el = document.getElementById('receipt-modal');
     if (el) el.remove();
     render();
+    showToast('تم إرسال الإيصال للمتبرع بنجاح');
   };
   reader.readAsDataURL(file);
 }
@@ -1484,6 +1534,7 @@ function createCase(){
     _pendingBeneficiary:{fullName:bName||'غير مُدخَل', phone:bPhone||'—', address:bAddress||'—', maritalStatus:bMarital, familySize:bFamily||'—', employment:bEmployment, income:bIncome||'—', needDetails:bNeed||'—', verification:bVerify, documents:[], notes:bNotes}});
   activityLog.unshift({ts:'الآن', text:'تم نشر حالة جديدة: ' + title});
   location.hash = '#/ngo/case/' + id;
+  showToast('تم نشر الحالة بنجاح');
 }
 
 function ensureRequest(caseId){
@@ -1529,8 +1580,12 @@ function ngoCaseDetail(id){
   return `
   <div class="breadcrumb"><a onclick="location.hash='#/ngo/cases'">قائمة الحالات</a><span class="sep">/</span><span class="cur">${c.id}</span></div>
   <div class="detail-card">
-    <div class="detail-title">${c.title}</div>
-    <div class="detail-meta">${c.charities.map(ch=>`<span class="chip">${ch}</span>`).join('')}<span class="chip">${c.area}</span>${caseStatusChip(c)}</div>
+    <div class="detail-top">
+      <div><div class="detail-title">${c.title}</div>
+        <div class="detail-meta">${c.charities.map(ch=>`<span class="chip">${ch}</span>`).join('')}<span class="chip">${c.area}</span>${caseStatusChip(c)}</div>
+      </div>
+      ${(!req || !req.finalized) ? `<button class="btn btn-ghost btn-sm" onclick="location.hash='#/ngo/case-edit/${c.id}'">تعديل الحالة</button>` : ''}
+    </div>
     <div class="detail-amounts" style="margin-top:14px;"><span>تم جمع <b>${fmt(c.raised)}</b> ج.م</span><span>الهدف <b>${fmt(c.target)}</b> ج.م</span></div>
     <div class="detail-story">${c.story}</div>
   </div>
@@ -1539,6 +1594,67 @@ function ngoCaseDetail(id){
     <div class="timeline">${c.updates.map(u=>`<div class="tl-item"><div class="tl-date">${u.date}</div><div class="tl-text">${u.text}</div></div>`).join('')}</div>
   </div>
   ${req ? `<button class="btn btn-ghost" onclick="location.hash='#/ngo/request/${c.id}'">عرض طلب الصرف</button>` : `<div class="note">لا يوجد طلب صرف بعد (التمويل لم يكتمل).</div>`}`;
+}
+
+function ngoEditCasePage(id){
+  const c = cases.find(x => x.id === id);
+  if (!c || !c.charities.includes(currentUser.charity)) return `<p>غير مصرح لك بتعديل هذه الحالة.</p>`;
+  const req = requests[c.id];
+  if (req && req.finalized) return `<p>الحالة دي اتصرفت بالفعل ومينفعش تتعدّل.</p>`;
+  const needsText = (c.needs || []).map(n => `${n.item}: ${n.amount}`).join('\n');
+  return `
+  <div class="breadcrumb"><a onclick="location.hash='#/ngo/case/${c.id}'">${c.id}</a><span class="sep">/</span><span class="cur">تعديل</span></div>
+  <div class="form-card">
+    <h3>تعديل بيانات الحالة</h3>
+    <div class="grid-2">
+      <div class="field"><label>عنوان الحالة</label><input id="ec-title" value="${c.title}"></div>
+      <div class="field"><label>المنطقة</label><input id="ec-area" value="${c.area}"></div>
+      <div class="field"><label>نوع الحالة</label>
+        <select id="ec-category">
+          ${['دعم أسرة','حالة طبية','تعليمية','احتياجات شتوية','كارثة طارئة','أخرى'].map(o => `<option ${o===c.category?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>درجة الأولوية</label>
+        <select id="ec-urgency"><option ${c.urgency==='عادية'?'selected':''}>عادية</option><option ${c.urgency==='عاجلة'?'selected':''}>عاجلة</option></select>
+      </div>
+      <div class="field"><label>المبلغ المستهدف (ج.م)</label><input id="ec-target" type="number" value="${c.target}"></div>
+      <div class="field"><label>المدة المتوقعة لصرف المبلغ</label><input id="ec-duration" value="${c.duration || ''}"></div>
+    </div>
+    <div class="field"><label>قصة الحالة</label><textarea id="ec-story" rows="3">${c.story}</textarea></div>
+    <div class="field"><label>بنود الصرف (بند: مبلغ في كل سطر)</label><textarea id="ec-needs" rows="3">${needsText}</textarea></div>
+    ${c.raised > 0 ? `<div class="note">تم جمع/تخصيص ${fmt(c.raised)} ج.م بالفعل — المبلغ المستهدف الجديد لازم يكون ${fmt(c.raised)} ج.م على الأقل.</div>` : ''}
+    <div class="login-error" id="ec-error">تأكد من العنوان والمنطقة والمبلغ المستهدف (لازم يكون ${fmt(c.raised)} ج.م على الأقل).</div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn btn-ghost" onclick="location.hash='#/ngo/case/${c.id}'">إلغاء</button>
+      <button class="btn btn-brass" onclick="updateCase('${c.id}')">حفظ التعديلات</button>
+    </div>
+  </div>`;
+}
+
+function updateCase(id){
+  const c = cases.find(x => x.id === id);
+  if (!c || !c.charities.includes(currentUser.charity)) return;
+  const title = document.getElementById('ec-title').value.trim();
+  const area = document.getElementById('ec-area').value.trim();
+  const target = parseInt(document.getElementById('ec-target').value, 10);
+  const err = document.getElementById('ec-error');
+  if (!title || !area || !target || target < c.raised){ err.classList.add('show'); return; }
+  const needsRaw = document.getElementById('ec-needs').value.trim();
+  c.title = title;
+  c.area = area;
+  c.category = document.getElementById('ec-category').value;
+  c.urgency = document.getElementById('ec-urgency').value;
+  c.target = target;
+  c.duration = document.getElementById('ec-duration').value.trim() || 'لم يُحدَّد بعد';
+  c.story = document.getElementById('ec-story').value.trim() || c.story;
+  c.needs = needsRaw ? needsRaw.split('\n').filter(Boolean).map(line => {
+    const parts = line.split(':');
+    return {item: parts[0].trim(), amount: parseInt((parts[1]||'0').replace(/[^0-9]/g,''),10) || 0};
+  }) : [];
+  c.updates.push({date:'الآن', text:'تم تعديل بيانات الحالة.'});
+  activityLog.unshift({ts:'الآن', text:'تم تعديل حالة ' + id});
+  location.hash = '#/ngo/case/' + id;
+  showToast('تم حفظ التعديلات بنجاح');
 }
 
 /* ================= NGO: requests list ================= */
@@ -1576,11 +1692,13 @@ function allocateToCase(caseId){
   let amount = parseInt(input.value, 10);
   if (!amount || amount < 10) return;
   amount = Math.min(amount, ch.balance, c.target - c.raised);
+  if (amount <= 0) return;
   ch.balance -= amount;
   c.raised += amount;
   ensureRequest(caseId);
   activityLog.unshift({ts:'الآن', text:'تم تخصيص ' + fmt(amount) + ' ج.م من رصيد ' + currentUser.charity + ' لحالة ' + caseId});
   render();
+  showToast('تم تخصيص ' + fmt(amount) + ' ج.م للحالة');
 }
 function renderNgoRequestsList(){
   const wrap = document.getElementById('ngo-requests-list');
@@ -1664,12 +1782,14 @@ function finalizeDisbursement(caseId){
   const req = requests[caseId];
   const c = cases.find(x=>x.id===caseId);
   if (!req || !c || !c.charities.includes(currentUser.charity)) return;
+  if (!confirm('تأكيد الصرف النهائي لحالة "' + c.title + '"؟ الإجراء ده نهائي ومش هيتم التراجع عنه.')) return;
   const ta = document.getElementById('reason-' + caseId);
   req.reason = (ta && ta.value.trim()) || 'تمت مراجعة حالة المستفيد والموافقة على الصرف.';
   req.finalized = true;
   impactUpdates.unshift({charity: currentUser.charity, caseTitle: c.title, reason: req.reason, amount: c.raised, ts:'الآن'});
   activityLog.unshift({ts:'الآن', text:'تم اعتماد وصرف حالة ' + caseId});
   renderNgoReqDetail();
+  showToast('تم اعتماد الصرف بنجاح');
 }
 
 /* ================= NGO: profile ================= */
@@ -1731,7 +1851,12 @@ function adminCharitiesPage(){
     </div>
     <div class="field"><label>نبذة عن الجمعية</label><textarea id="new-ch-desc" rows="2" placeholder="وصف مختصر لعمل الجمعية"></textarea></div>
     <button class="btn btn-brass" onclick="createCharity()">إنشاء الحساب</button>
-    <div class="note" id="new-ch-result" style="margin-top:10px;"></div>
+    ${lastCharityCreds ? (lastCharityCreds.error ?
+      `<div class="login-error show" style="margin-top:12px;">${lastCharityCreds.error}</div>` :
+      `<div class="note" style="margin-top:12px; background:var(--parchment-2); padding:12px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <span>تم الإنشاء بنجاح. بيانات الدخول: <b>${lastCharityCreds.email}</b> / <b>${lastCharityCreds.pass}</b></span>
+        <button class="btn btn-ghost btn-sm" onclick="dismissCharityCreds()">تمام</button>
+      </div>`) : ''}
   </div>
   <div class="panel-head"><h2>الجمعيات الحالية</h2></div>
   <div id="approved-list"></div>`;
@@ -1746,13 +1871,15 @@ function createCharity(){
   const transferNumber = document.getElementById('new-ch-transfer').value.trim();
   const desc = document.getElementById('new-ch-desc').value.trim() || 'جمعية معتمدة حديثاً.';
   if (!name || !area || !email || !transferNumber) return;
-  if (ACCOUNTS.some(a => a.email === email)){ document.getElementById('new-ch-result').textContent = 'البريد/الرقم ده مستخدم بالفعل.'; return; }
+  if (ACCOUNTS.some(a => a.email === email)){ lastCharityCreds = {error:'البريد/الرقم ده مستخدم بالفعل.'}; render(); return; }
   approvedCharities.push({name, area, desc, founded, balance, transferNumber});
   ACCOUNTS.push({email, pass, role:'ngo', name:'مسؤول ' + name, charity:name});
   activityLog.unshift({ts:'الآن', text:'الأدمن أنشأ حساب جمعية جديدة: ' + name});
-  document.getElementById('new-ch-result').textContent = `تم الإنشاء. بيانات الدخول: ${email} / ${pass}`;
+  lastCharityCreds = {email, pass};
   render();
+  showToast('تم إنشاء حساب الجمعية بنجاح');
 }
+function dismissCharityCreds(){ lastCharityCreds = null; render(); }
 function renderApprovedCharities(){
   const wrap = document.getElementById('approved-list');
   if (!wrap) return;
@@ -1900,6 +2027,7 @@ function doChangePassword(){
   document.getElementById('cp-new').value = '';
   document.getElementById('cp-new2').value = '';
   success.style.display = 'block';
+  showToast('تم تغيير كلمة المرور بنجاح');
 }
 
 function teamPage(){
