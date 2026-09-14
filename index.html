@@ -398,6 +398,10 @@
   .faq-chevron{transition:transform .3s cubic-bezier(.16,1,.3,1); color:var(--brass); flex-shrink:0;}
   .faq-item.open .faq-chevron{transform:rotate(180deg);}
   .faq-a-wrap{display:grid; grid-template-rows:0fr; transition:grid-template-rows .35s cubic-bezier(.16,1,.3,1);}
+  .dyn-wrap{display:grid; grid-template-rows:0fr; transition:grid-template-rows .4s cubic-bezier(.16,1,.3,1); opacity:0; transition-property:grid-template-rows, opacity; margin-top:0;}
+  .dyn-wrap.show{grid-template-rows:1fr; opacity:1; margin-top:14px;}
+  .dyn-inner{overflow:hidden;}
+  .dyn-box{background:var(--parchment); border:1px dashed var(--line); border-radius:10px; padding:14px;}
   .faq-item.open .faq-a-wrap{grid-template-rows:1fr;}
   .faq-a-inner{overflow:hidden;}
   .faq-a{font-size:13px; color:#6B7280; line-height:1.8; padding:0 20px 16px 20px;}
@@ -426,7 +430,7 @@
 <div id="app"></div>
 <div class="toast-stack" id="toast-stack"></div>
 
-<footer class="site">حقوق المنصة لـ نماء</footer>
+<footer class="site">حقوق المنصة لـ نماء · <a onclick="showDisclaimer()" style="cursor:pointer; text-decoration:underline; color:inherit;">الشروط وإخلاء المسؤولية</a></footer>
 
 <script>
 /* ================= Accounts ================= */
@@ -435,8 +439,8 @@ const ACCOUNTS = [
   {email:'rahma@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية الرحمة', charity:'جمعية الرحمة'},
   {email:'khair@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية بيت الخير', charity:'جمعية بيت الخير'},
   {email:'aytam@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية رعاية الأيتام', charity:'جمعية رعاية الأيتام'},
-  {email:'nahda@baytalmal.eg', pass:'demo123', role:'ngo', name:'مسؤول جمعية النهضة', charity:'جمعية النهضة'},
-  {email:'admin@baytalmal.eg', pass:'demo123', role:'admin', name:'أدمن المنصة'}
+  {email:'j1@gmail.com', pass:'123456', role:'ngo', name:'مسؤول جمعية النهضة', charity:'جمعية النهضة'},
+  {email:'admin@gmail.com', pass:'123456', role:'admin', name:'أدمن المنصة'}
 ];
 let currentUser = null;
 
@@ -461,6 +465,8 @@ const cases = [
 let myDonations = [];
 let donations = [];
 let impactUpdates = [];
+let complaints = [];
+let complaintCounter = 1;
 let donationCounter = 1;
 let pendingDonateCharity = null;
 let selectedPayMethod = 'fawry';
@@ -541,6 +547,58 @@ function parseHash(){
   return {section: parts[0], sub: parts[1], id: parts[2]};
 }
 
+function showDisclaimer(){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = `
+    <div class="modal-card" style="max-width:460px; text-align:right;">
+      <h3>الشروط وإخلاء المسؤولية</h3>
+      <div class="sub" style="line-height:1.9;">
+        <b>بيت المال منصة وسيطة تقنية بس.</b> دورها إنها تربط المتبرعين بالجمعيات الأهلية المعتمدة، وتوفّر أدوات تسجيل وتوثيق للتبرعات والصرف.
+        <br><br>
+        المنصة <b>مش طرف</b> في عملية جمع أو حيازة أو صرف الأموال — التحويلات بتتم مباشرة بين المتبرع والجمعية. المسؤولية الكاملة عن استخدام الأموال والالتزام بالغرض المعلن تقع على عاتق <b>الجمعية المستلمة</b> وحدها، باعتبارها الجهة المرخّصة قانونياً لجمع التبرعات.
+        <br><br>
+        لو عندك شكوى بخصوص جمعية أو تبرع معيّن، تقدر تبلّغ عنها من صفحة "سجل تبرعاتي" وهيتم مراجعتها.
+      </div>
+      <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="this.closest('.modal-overlay').remove()">تمام، فهمت</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function openComplaintModal(donationSeq){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'complaint-modal';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <h3>أبلغ عن مشكلة</h3>
+      <div class="sub">هنراجع بلاغك ونتواصل معاك لو محتاجين تفاصيل أكتر. البلاغ بيوصل لإدارة المنصة مباشرة.</div>
+      <div class="field"><label>نوع المشكلة</label>
+        <select id="cm-type"><option>الجمعية ماردتش استلام التبرع</option><option>شك في استخدام المبلغ</option><option>معلومات غير دقيقة عن الحالة</option><option>مشكلة تقنية في المنصة</option><option>أخرى</option></select>
+      </div>
+      <div class="field"><label>تفاصيل المشكلة</label><textarea id="cm-details" rows="3" placeholder="اكتب المشكلة بالتفصيل"></textarea></div>
+      <div class="login-error" id="cm-error">اكتب تفاصيل المشكلة الأول.</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="document.getElementById('complaint-modal').remove()">إلغاء</button>
+        <button class="btn btn-primary" onclick="submitComplaint(${donationSeq})">إرسال البلاغ</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+function submitComplaint(donationSeq){
+  const d = donations.find(x => x.seq === donationSeq);
+  const type = document.getElementById('cm-type').value;
+  const details = document.getElementById('cm-details').value.trim();
+  if (!details){ document.getElementById('cm-error').classList.add('show'); return; }
+  complaints.push({id: complaintCounter++, donationSeq, donorId: d ? d.donorId : '—', charity: d ? d.charity : '—', type, details, status:'pending', ts:'الآن'});
+  activityLog.unshift({ts:'الآن', text:'بلاغ جديد من متبرع بخصوص ' + (d ? d.charity : 'تبرع')});
+  document.getElementById('complaint-modal').remove();
+  render();
+  showToast('تم إرسال البلاغ، هنراجعه قريب');
+}
+
 function showToast(message, isError){
   const stack = document.getElementById('toast-stack');
   if (!stack) return;
@@ -597,6 +655,7 @@ function render(){
     else if (sub === 'cases') body = adminCasesPage();
     else if (sub === 'donors') body = adminDonorsPage();
     else if (sub === 'donations') body = adminDonationsPage();
+    else if (sub === 'complaints') body = adminComplaintsPage();
     else if (sub === 'activity') body = adminActivityPage();
     else if (sub === 'notifications') body = notificationsPage();
     else if (sub === 'settings') body = settingsPage();
@@ -667,6 +726,7 @@ function sidebarLinks(){
     <div class="side-link ${is('cases')}" onclick="location.hash='#/admin/cases'">كل الحالات</div>
     <div class="side-link ${is('donors')}" onclick="location.hash='#/admin/donors'">حسابات المتبرعين</div>
     <div class="side-link ${is('donations')}" onclick="location.hash='#/admin/donations'">كل التبرعات</div>
+    <div class="side-link ${is('complaints')}" onclick="location.hash='#/admin/complaints'">الشكاوى</div>
     <div class="side-link ${is('activity')}" onclick="location.hash='#/admin/activity'">سجل النشاط</div>
     <div class="grp-label">الحساب</div>
     <div class="side-link ${is('notifications')}" onclick="location.hash='#/admin/notifications'">الإشعارات</div>
@@ -715,7 +775,7 @@ function landingPage(){
       <div class="wrap" style="position:relative; z-index:1;">
         <div class="landing-wordmark reveal">بيت <span class="brand-accent">المال</span></div>
         <h1 class="reveal" style="transition-delay:.05s;">أهل <span class="village">كفر بهيده</span> إيد واحدة</h1>
-        <p class="reveal" style="transition-delay:.16s;">مفيش غريب بينا. اللي عنده يمدّ إيده، واللي محتاج يوصله حقه — من غير ما حد يعرف مين ده ومين ده.</p>
+        <p class="reveal" style="transition-delay:.16s;"> اللي عنده يمدّ إيده، واللي محتاج يوصله حقه — من غير ما حد يعرف مين ده ومين ده.</p>
         <div class="landing-cta reveal" style="transition-delay:.28s;">
           <button class="btn btn-brass" onclick="location.hash='#/login'">ابدأ من هنا</button>
         </div>
@@ -850,6 +910,14 @@ function landingPage(){
       </div>
     </section>
   </div>`;
+}
+
+function updateCaseTypeFields(){
+  const val = document.getElementById('nc-urgency').value;
+  const urgentWrap = document.getElementById('urgent-fields-wrap');
+  const ongoingWrap = document.getElementById('ongoing-fields-wrap');
+  if (urgentWrap) urgentWrap.classList.toggle('show', val === 'عاجلة');
+  if (ongoingWrap) ongoingWrap.classList.toggle('show', val === 'مستمرة');
 }
 
 function toggleFaq(i){
@@ -1359,6 +1427,7 @@ function renderDonorLedger(){
   wrap.innerHTML = '';
   [...myDonations].reverse().forEach(d => {
     const st = statusLabel(d);
+    const myComplaint = complaints.find(c => c.donationSeq === d.seq);
     const entry = document.createElement('div');
     entry.className = 'entry';
     entry.innerHTML = `
@@ -1367,6 +1436,9 @@ function renderDonorLedger(){
         <div class="entry-top">
           <div><div class="entry-id">تبرع رقم ${d.donorId}</div><div class="entry-title">${d.charity}</div></div>
           <div style="text-align:left;"><div class="entry-amount">${fmt(d.amount)} ج.م</div><span class="badge ${st.cls}">${st.text}</span></div>
+        </div>
+        <div style="margin-top:8px;">
+          ${myComplaint ? `<span class="chip ${myComplaint.status==='resolved'?'status-open':'status-pending'}">${myComplaint.status==='resolved'?'تم حل البلاغ':'بلاغك قيد المراجعة'}</span>` : `<a onclick="openComplaintModal(${d.seq})" style="cursor:pointer; text-decoration:underline; color:var(--rust); font-size:12px;">أبلغ عن مشكلة في هذا التبرع</a>`}
         </div>
       </div>
       <div class="seal ${d.receiptSent ? 'stamped' : ''}">معتمد</div>
@@ -1525,14 +1597,42 @@ function ngoNewCasePage(){
           <option>دعم أسرة</option><option>حالة طبية</option><option>تعليمية</option><option>احتياجات شتوية</option><option>كارثة طارئة</option><option>أخرى</option>
         </select>
       </div>
-      <div class="field"><label>درجة الأولوية</label>
-        <select id="nc-urgency"><option>عادية</option><option>عاجلة</option></select>
+      <div class="field"><label>طبيعة الحالة</label>
+        <select id="nc-urgency" onchange="updateCaseTypeFields()">
+          <option value="عادية">عادية (لمرة واحدة)</option>
+          <option value="عاجلة">عاجلة</option>
+          <option value="مستمرة">مستمرة</option>
+        </select>
       </div>
       <div class="field"><label>المبلغ المستهدف (ج.م)</label><input id="nc-target" type="number" placeholder="5000"></div>
       <div class="field"><label>المدة المتوقعة لصرف المبلغ</label><input id="nc-duration" placeholder="مثال: خلال أسبوع من اكتمال التمويل"></div>
     </div>
+    <div class="dyn-wrap" id="urgent-fields-wrap">
+      <div class="dyn-inner">
+        <div class="dyn-box">
+          <div class="note" style="color:var(--rust); font-weight:700; margin-bottom:8px;">بيانات إضافية مطلوبة للحالة العاجلة</div>
+          <div class="grid-2">
+            <div class="field"><label>سبب العجلة</label><input id="nc-urgent-reason" placeholder="مثال: عملية جراحية عاجلة"></div>
+            <div class="field"><label>آخر موعد ممكن للصرف</label><input id="nc-urgent-deadline" placeholder="مثال: خلال 3 أيام"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dyn-wrap" id="ongoing-fields-wrap">
+      <div class="dyn-inner">
+        <div class="dyn-box">
+          <div class="note" style="color:var(--teal-dark); font-weight:700; margin-bottom:8px;">بيانات إضافية مطلوبة للحالة المستمرة</div>
+          <div class="grid-2">
+            <div class="field"><label>مدة الاستمرار المتوقعة</label><input id="nc-ongoing-duration" placeholder="مثال: 6 أشهر"></div>
+            <div class="field"><label>المبلغ الشهري المطلوب (ج.م)</label><input id="nc-ongoing-monthly" type="number" placeholder="1000"></div>
+            <div class="field"><label>موعد أول مراجعة للحالة</label><input id="nc-ongoing-review" placeholder="مثال: بعد شهرين"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="field"><label>قصة الحالة</label><textarea id="nc-story" rows="3" placeholder="وصف عام لظروف الحالة بدون تفاصيل تكشف الهوية"></textarea></div>
     <div class="field"><label>بنود الصرف (بند: مبلغ في كل سطر)</label><textarea id="nc-needs" rows="3" placeholder="إيجار 3 أشهر: 4500&#10;احتياجات أساسية: 3500"></textarea></div>
+    <div class="login-error" id="nc-error">لازم تملا كل الحقول المطلوبة حسب طبيعة الحالة اللي اخترتها.</div>
   </div>
 
   <div class="form-card" style="border-color:var(--brass);">
@@ -1585,10 +1685,25 @@ function createCase(){
   const bVerify = document.getElementById('nc-b-verify').value;
   const bNotes = document.getElementById('nc-b-notes').value.trim();
 
+  let urgentDetails = null, ongoingDetails = null;
+  const err = document.getElementById('nc-error');
+  if (urgency === 'عاجلة'){
+    const reason = document.getElementById('nc-urgent-reason').value.trim();
+    const deadline = document.getElementById('nc-urgent-deadline').value.trim();
+    if (!reason || !deadline){ if (err) err.classList.add('show'); return; }
+    urgentDetails = {reason, deadline};
+  } else if (urgency === 'مستمرة'){
+    const odur = document.getElementById('nc-ongoing-duration').value.trim();
+    const monthly = parseInt(document.getElementById('nc-ongoing-monthly').value, 10);
+    const review = document.getElementById('nc-ongoing-review').value.trim();
+    if (!odur || !monthly || !review){ if (err) err.classList.add('show'); return; }
+    ongoingDetails = {duration: odur, monthly, review};
+  }
+
   if (!title || !area || !target || target <= 0) return;
   const id = 'C-0' + (30 + cases.length);
   cases.push({id, title, charities:[currentUser.charity], target, raised:0, area, donorsCount:0,
-    category, urgency, duration: duration || 'لم يُحدَّد بعد', needs,
+    category, urgency, duration: duration || 'لم يُحدَّد بعد', needs, urgentDetails, ongoingDetails,
     story: story || 'لا يوجد وصف إضافي بعد.',
     updates:[{date:'الآن', text:'تم نشر الحالة.'}],
     _pendingBeneficiary:{fullName:bName||'غير مُدخَل', phone:bPhone||'—', address:bAddress||'—', maritalStatus:bMarital, familySize:bFamily||'—', employment:bEmployment, income:bIncome||'—', needDetails:bNeed||'—', verification:bVerify, documents:[], notes:bNotes}});
@@ -1642,12 +1757,14 @@ function ngoCaseDetail(id){
   <div class="detail-card">
     <div class="detail-top">
       <div><div class="detail-title">${c.title}</div>
-        <div class="detail-meta">${c.charities.map(ch=>`<span class="chip">${ch}</span>`).join('')}<span class="chip">${c.area}</span>${caseStatusChip(c)}</div>
+        <div class="detail-meta">${c.charities.map(ch=>`<span class="chip">${ch}</span>`).join('')}<span class="chip">${c.area}</span>${c.urgency && c.urgency !== 'عادية' ? `<span class="chip ${c.urgency==='عاجلة'?'status-pending':'status-open'}">${c.urgency}</span>` : ''}${caseStatusChip(c)}</div>
       </div>
       ${(!req || !req.finalized) ? `<button class="btn btn-ghost btn-sm" onclick="location.hash='#/ngo/case-edit/${c.id}'">تعديل الحالة</button>` : ''}
     </div>
     <div class="detail-amounts" style="margin-top:14px;"><span>تم جمع <b>${fmt(c.raised)}</b> ج.م</span><span>الهدف <b>${fmt(c.target)}</b> ج.م</span></div>
     <div class="detail-story">${c.story}</div>
+    ${c.urgentDetails ? `<div class="note" style="margin-top:10px; background:var(--parchment); padding:10px 12px; border-radius:8px; border-right:3px solid var(--rust);"><b>سبب العجلة:</b> ${c.urgentDetails.reason} — <b>آخر موعد:</b> ${c.urgentDetails.deadline}</div>` : ''}
+    ${c.ongoingDetails ? `<div class="note" style="margin-top:10px; background:var(--parchment); padding:10px 12px; border-radius:8px; border-right:3px solid var(--teal);"><b>مدة الاستمرار:</b> ${c.ongoingDetails.duration} — <b>الشهري المطلوب:</b> ${fmt(c.ongoingDetails.monthly)} ج.م — <b>أول مراجعة:</b> ${c.ongoingDetails.review}</div>` : ''}
   </div>
   <div class="detail-card">
     <h3 style="font-size:14.5px; color:var(--teal-dark); margin-bottom:6px;">تحديثات الحالة</h3>
@@ -1886,6 +2003,7 @@ function adminDashboardPage(){
     <div class="stat-card"><div class="v" data-count="${approvedCharities.reduce((s,n)=>s+n.balance,0)}" data-suffix=" ج.م">0</div><div class="l">إجمالي أرصدة الجمعيات</div></div>
     <div class="stat-card"><div class="v" data-count="${donations.reduce((s,d)=>s+d.amount,0)}" data-suffix=" ج.م">0</div><div class="l">إجمالي التبرعات عبر المنصة</div></div>
   </div>
+  <div class="panel-head"><h2>بلاغات قيد المراجعة</h2><div class="count"><a onclick="location.hash='#/admin/complaints'" style="cursor:pointer; text-decoration:underline;">${complaints.filter(c=>c.status==='pending').length} بلاغ — عرض الكل</a></div></div>
   <div class="panel-head"><h2>نشاط حديث</h2><div class="count"><a onclick="location.hash='#/admin/activity'" style="cursor:pointer; text-decoration:underline;">السجل الكامل</a></div></div>
   <div class="activity">${activityLog.slice(0,5).map(a=>`<div class="act-row"><span class="t">${a.text}</span><span class="ts">${a.ts}</span></div>`).join('')}</div>`;
 }
@@ -1990,6 +2108,41 @@ function adminDonationsPage(){
       <td>${d.receiptSent ? '<span class="chip status-open">تم الإرسال</span>' : '<span class="chip status-pending">لم يُرسل</span>'}</td>
     </tr>`).join('') || '<tr><td colspan="6">لا توجد تبرعات مسجّلة بعد.</td></tr>'}
   </tbody></table></div>`;
+}
+
+function adminComplaintsPage(){
+  const pending = complaints.filter(c => c.status === 'pending');
+  const resolved = complaints.filter(c => c.status === 'resolved');
+  return `
+  <section class="hero" style="padding-top:0;">
+    <div class="eyebrow">الإشراف العام</div>
+    <h1 style="font-size:21px;">الشكاوى</h1>
+    <p class="lead">بلاغات المتبرعين عن مشاكل في التبرعات أو الجمعيات.</p>
+  </section>
+  <div class="panel-head"><h2>بلاغات قيد المراجعة</h2><div class="count">${pending.length}</div></div>
+  <div style="margin-bottom:28px;">
+    ${pending.length ? pending.map(c => `
+      <div class="req-card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div><div style="font-weight:700; font-size:13.5px;">${c.type}</div><div class="note">الجمعية: ${c.charity} · متبرع رقم ${c.donorId} · ${c.ts}</div></div>
+          <button class="btn btn-primary btn-sm" onclick="resolveComplaint(${c.id})">تحديد كمحلول</button>
+        </div>
+        <div class="note" style="margin-top:8px; background:var(--parchment); padding:10px 12px; border-radius:8px;">${c.details}</div>
+      </div>`).join('') : '<div class="note">لا توجد بلاغات قيد المراجعة.</div>'}
+  </div>
+  <div class="panel-head"><h2>بلاغات تم حلها</h2><div class="count">${resolved.length}</div></div>
+  <div>
+    ${resolved.length ? resolved.map(c => `
+      <div class="ngo-row"><div class="ngo-info"><div class="n">${c.type} — ${c.charity}</div><div class="d">${c.details}</div></div><span class="chip status-open">تم الحل</span></div>`).join('') : '<div class="note">لا توجد بلاغات محلولة بعد.</div>'}
+  </div>`;
+}
+function resolveComplaint(id){
+  const c = complaints.find(x => x.id === id);
+  if (!c) return;
+  c.status = 'resolved';
+  activityLog.unshift({ts:'الآن', text:'تم حل بلاغ بخصوص ' + c.charity});
+  render();
+  showToast('تم تحديد البلاغ كمحلول');
 }
 
 function adminCasesPage(){
